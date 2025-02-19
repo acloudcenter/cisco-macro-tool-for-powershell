@@ -84,18 +84,17 @@ function Upload-MacroFromJs {
 <Command>
     <Macros>
         <Macro>
-            <Save command="True">
-                <name>{0}</name>
-                <body>{1}</body>
+            <Save>
+                <Name>$macroName</Name>
+                <body>$encodedJsCode</body>
                 <overWrite>True</overWrite>
-                <Transpile>False</Transpile>
             </Save>
         </Macro>
     </Macros>
 </Command>
 "@
 
-    $body = [string]::Format($bodyTemplate, $macroName, $encodedJsCode)
+    $body = $bodyTemplate
     $bodyBytes = [Text.Encoding]::UTF8.GetBytes($body)
 
     $headers["Content-Length"] = $bodyBytes.Length
@@ -105,7 +104,7 @@ function Upload-MacroFromJs {
     Log-Message -message $message -logFile $logFile
 
     try {
-        $response = Invoke-RestMethod -Uri "https://$endpointIp/putxml" -Method 'POST' -Headers $headers -Body $bodyBytes -TimeoutSec 10 -SkipCertificateCheck
+        $response = Invoke-RestMethod -Uri "https://$endpointIp/putxml" -Method 'POST' -Headers $headers -Body $bodyBytes -TimeoutSec 15 -SkipCertificateCheck
         $message = "Macro $macroName uploaded successfully to $endpointIp ($systemName) from $jsFilePath."
         Display-Message $message
         Log-Message -message $message -logFile $logFile
@@ -156,7 +155,7 @@ function Enable-Macro {
 "@
 
     try {
-        $response = Invoke-RestMethod -Uri "https://$endpointIp/putxml" -Method 'POST' -Headers $headers -Body $body -TimeoutSec 10 -SkipCertificateCheck
+        $response = Invoke-RestMethod -Uri "https://$endpointIp/putxml" -Method 'POST' -Headers $headers -Body $body -TimeoutSec 15 -SkipCertificateCheck
         $message = "Macro $macroName enabled successfully on $endpointIp ($systemName)."
         Display-Message $message
         Log-Message -message $message -logFile $logFile
@@ -198,7 +197,7 @@ function Restart-MacroRuntime {
 "@
 
     try {
-        $response = Invoke-RestMethod -Uri "https://$endpointIp/putxml" -Method 'POST' -Headers $headers -Body $body -TimeoutSec 10 -SkipCertificateCheck
+        $response = Invoke-RestMethod -Uri "https://$endpointIp/putxml" -Method 'POST' -Headers $headers -Body $body -TimeoutSec 15 -SkipCertificateCheck
         $message = "Macro runtime restarted successfully on $endpointIp ($systemName)."
         Display-Message $message
         Log-Message -message $message -logFile $logFile
