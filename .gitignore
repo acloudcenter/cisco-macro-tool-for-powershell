@@ -1,0 +1,42 @@
+# PowerShell logs
+*.log
+
+# PowerShell Studio files
+*.psprojs
+*.psproj
+*.TempPoint.*
+
+# Credential files
+*.cred
+*.credential
+credentials.csv
+
+# Windows thumbnail cache files
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+
+# Folder config file
+[Dd]esktop.ini
+
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Visual Studio Code workspace settings
+.vscode/
+*.code-workspace
+
+# Temporary files
+*~
+*.tmp
+*.temp
+
+# ZIP files (OTJ Macros)
+*.zip
+
+# Environment files
+*.env

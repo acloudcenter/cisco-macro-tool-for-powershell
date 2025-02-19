@@ -1,6 +1,3 @@
-# Ignore SSL certificate validation to avoid errors
-[System.Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
-
 # Function to prompt user for file paths
 function Get-FilePath {
     param (
@@ -35,7 +32,7 @@ function Get-Macros {
 "@
 
     try {
-        $response = Invoke-RestMethod -Uri "https://$endpointIp/putxml" -Method 'POST' -Headers $headers -Body $body -SkipCertificateCheck -TimeoutSec 10
+        $response = Invoke-RestMethod -Uri "https://$endpointIp/putxml" -Method 'POST' -Headers $headers -Body $body -TimeoutSec 10 -SkipCertificateCheck
         $xmlContent = [xml]$response
         $macros = $xmlContent.Command.MacroGetResult.Macro | ForEach-Object { $_.Name }
         return $macros

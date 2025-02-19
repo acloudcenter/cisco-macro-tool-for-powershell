@@ -55,19 +55,6 @@ if (-not (Get-Confirmation -promptMessage "Do you want to proceed with the remov
     return
 }
 
-# Bypass SSL certificate validation
-Add-Type @"
-using System.Net;
-using System.Security.Cryptography.X509Certificates;
-public class TrustAllCertsPolicy : ICertificatePolicy {
-    public bool CheckValidationResult(
-        ServicePoint srvPoint, X509Certificate certificate, WebRequest request, int certificateProblem) {
-        return true;
-    }
-}
-"@
-[System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
-
 # Function to remove a UI extension from a system
 function Remove-UIExtension {
     param (
@@ -103,7 +90,7 @@ function Remove-UIExtension {
 "@
 
     try {
-        $response = Invoke-RestMethod -Uri "https://${endpointIp}/putxml" -Method 'POST' -Headers $headers -Body $body -TimeoutSec 10
+        $response = Invoke-RestMethod -Uri "https://${endpointIp}/putxml" -Method 'POST' -Headers $headers -Body $body -TimeoutSec 10 -SkipCertificateCheck
         $message = "UI extension $uiId removed successfully from ${endpointIp} ($systemName)."
         Display-Message $message
         Log-Message -message $message -logFile $logFile

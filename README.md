@@ -13,14 +13,15 @@ The Cisco Macro Tool For PowerShell is a script-based tool designed to manage ma
 - Check macros on all systems: Verify the macros currently installed across all systems.
 
 ## Prerequisites
-- PowerShell Core (pwsh) installed on your machine.
+- The latest version of PowerShell 7.5.0 installed on your machine.
+- PowerShell 5.1 is not supported as the script uses the Invoke-RestMethod cmdlet.
 - Windows only. MacOS not supported at this time.
 - Cisco systems with administrative access.
 - Direct network connectivity to the Cisco systems over port 443
 - CSV file with the following headers: system name, ip address, username, password.
 - A CSV template is provided in the repository.
 - Macro files in .js format or Pexip OTJ macros in a ZIP directory.
-- By default, the scripts will bypass certificate validaiton to remove any issues that may arise with self-signed certs. If you require certificate vlaidation the script can be modified.
+- By default, the scripts will bypass certificate validaiton to remove any issues that may arise with self-signed certs. If you require certificate vlaidation the script can be modified by removing the -SkipCertificateCheck from the Invoke-RestMethod API calls.
 
 ## Installation
 - Clone the repository:

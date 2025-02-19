@@ -64,19 +64,6 @@ if (-not (Get-Confirmation -promptMessage "Do you want to proceed with the uploa
     return
 }
 
-# Bypass SSL certificate validation
-Add-Type @"
-using System.Net;
-using System.Security.Cryptography.X509Certificates;
-public class TrustAllCertsPolicy : ICertificatePolicy {
-    public bool CheckValidationResult(
-        ServicePoint srvPoint, X509Certificate certificate, WebRequest request, int certificateProblem) {
-        return true;
-    }
-}
-"@
-[System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
-
 # Function to upload macros from a ZIP file
 function Upload-MacroFromZip {
     param (
@@ -126,7 +113,7 @@ function Upload-MacroFromZip {
 "@
 
             try {
-                $response = Invoke-RestMethod -Uri "https://$endpointIp/putxml" -Method 'POST' -Headers $headers -Body $body -TimeoutSec 10
+                $response = Invoke-RestMethod -Uri "https://$endpointIp/putxml" -Method 'POST' -Headers $headers -Body $body -TimeoutSec 10 -SkipCertificateCheck
                 $message = "Macro $macroName uploaded successfully to $endpointIp ($systemName) from $zipFilePath."
                 Display-Message $message
                 Log-Message -message $message -logFile $logFile
@@ -184,7 +171,7 @@ function Enable-Macro {
 "@
 
     try {
-        $response = Invoke-RestMethod -Uri "https://$endpointIp/putxml" -Method 'POST' -Headers $headers -Body $body -TimeoutSec 10
+        $response = Invoke-RestMethod -Uri "https://$endpointIp/putxml" -Method 'POST' -Headers $headers -Body $body -TimeoutSec 10 -SkipCertificateCheck
         $message = "Macro $macroName enabled successfully on $endpointIp ($systemName)."
         Display-Message $message
         Log-Message -message $message -logFile $logFile
@@ -226,7 +213,7 @@ function Restart-MacroRuntime {
 "@
 
     try {
-        $response = Invoke-RestMethod -Uri "https://$endpointIp/putxml" -Method 'POST' -Headers $headers -Body $body -TimeoutSec 10
+        $response = Invoke-RestMethod -Uri "https://$endpointIp/putxml" -Method 'POST' -Headers $headers -Body $body -TimeoutSec 10 -SkipCertificateCheck
         $message = "Macro runtime restarted successfully on $endpointIp ($systemName)."
         Display-Message $message
         Log-Message -message $message -logFile $logFile

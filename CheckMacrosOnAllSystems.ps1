@@ -51,19 +51,6 @@ if (-not (Get-Confirmation -promptMessage "Do you want to proceed with checking 
     return
 }
 
-# Bypass SSL certificate validation
-Add-Type @"
-using System.Net;
-using System.Security.Cryptography.X509Certificates;
-public class TrustAllCertsPolicy : ICertificatePolicy {
-    public bool CheckValidationResult(
-        ServicePoint srvPoint, X509Certificate certificate, WebRequest request, int certificateProblem) {
-        return true;
-    }
-}
-"@
-[System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
-
 # Function to get macros from a system
 function Get-Macros {
     param (
@@ -93,7 +80,7 @@ function Get-Macros {
 "@
 
     try {
-        $response = Invoke-RestMethod -Uri "https://${endpointIp}/putxml" -Method 'POST' -Headers $headers -Body $body -TimeoutSec 10
+        $response = Invoke-RestMethod -Uri "https://${endpointIp}/putxml" -Method 'POST' -Headers $headers -Body $body -TimeoutSec 10 -SkipCertificateCheck
         [xml]$xmlResponse = $response
         $macros = $xmlResponse.Command.MacroGetResult.Macro | ForEach-Object { $_.Name }
         if ($macros.Count -gt 0) {
