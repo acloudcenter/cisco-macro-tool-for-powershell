@@ -80,25 +80,4 @@ Contributions are welcome! Please feel free to submit pull requests.
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## ⚡ Performance Tips
 
-- Group operations by network location for faster execution
-- Use CSV files to manage large numbers of systems efficiently
-- Consider network latency when working with remote systems
-
-## 🔍 Troubleshooting
-
-Common issues and solutions:
-1. Connection failures
-   - Verify network connectivity
-   - Check system credentials
-   - Confirm system is reachable on port 443
-
-2. Macro upload failures
-   - Verify macro syntax
-   - Check system has available macro slots
-   - Ensure proper file formatting
-
-3. Permission issues
-   - Verify admin credentials
-   - Check system macro security settings
