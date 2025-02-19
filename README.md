@@ -21,6 +21,11 @@ A PowerShell-based utility for managing macros and UI extensions on Cisco video 
   - Audit macros across multiple systems
 - **Logging**: Detailed operation logs for troubleshooting
 
+### Recent Updates
+- Added automatic macro mode enabling before uploads
+- Improved error handling and logging for macro mode operations
+- Optimized upload process by enabling macro mode once per system
+
 ## 📋 Prerequisites
 
 ### System Requirements
