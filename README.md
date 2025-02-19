@@ -12,6 +12,9 @@ A PowerShell-based utility for managing macros and UI extensions on Cisco video 
 ### Primary Functions
 - **Upload Pexip OTJ Macros**: Deploy Pexip One-Touch-Join macros from ZIP packages
 - **Upload JS Macros**: Deploy custom JavaScript macros to systems
+  - Optional transpile evaluation configuration
+  - Automatic macro mode enabling
+  - Supports both modern and legacy Cisco firmware
 - **Remove Macros**: Bulk remove specific macros from systems
 - **Remove UI Extensions**: Clean up UI extensions from systems
 
@@ -23,6 +26,10 @@ A PowerShell-based utility for managing macros and UI extensions on Cisco video 
 
 ### Recent Updates
 - Added automatic macro mode enabling before uploads
+- Added transpile evaluation configuration option
+  - Users can choose to enable/disable transpile evaluation
+  - Gracefully handles systems that don't support this feature
+  - Default setting is disabled
 - Improved error handling and logging for macro mode operations
 - Optimized upload process by enabling macro mode once per system
 
