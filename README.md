@@ -1,132 +1,104 @@
-## Cisco Macro Tool For PowerShell
-The Cisco Macro Tool For PowerShell is a script-based tool designed to manage macros on Cisco systems using only built-in PowerShell cmdlets. The tool offers 4 primary functions and 2 secondary functions. The primary functions are uploading Pexip OTJ macros, uploading .js macros, removing macros, and removing UI extensions. The secondary functions are the ability to check all macros on a single system or all macros on all systems. Each function generates logs to help you keep track of operations and any issues that may arise.
+# Cisco Macro Tool For PowerShell
 
-## Note: This is not an official Pexip or Cisco Tool. This is a community tool.
-## Note: Certificate validation is set to bypass by default when connecting to systems using -SkipCertificateCheck flag. If you require certificate vlaidation the script can be modified by removing the -SkipCertificateCheck from the Invoke-RestMethod API calls.
+> ⚠️ **Note**: This is a community tool and is not officially supported by Pexip or Cisco.
 
-## Features
-- Upload Pexip OTJ macros: Upload and manage Pexip OTJ macros from ZIP files.
-- Upload .js macros: Upload and manage macros from .js files.
-- Remove macros: Remove specified macros from Cisco systems.
-- Remove UI Extensions: Remove specified UI Extension Panels from Cisco systems
-- Check macros on a specific system: Verify the macros currently installed on a single system.
-- Check macros on all systems: Verify the macros currently installed across all systems.
+A PowerShell-based utility for managing macros and UI extensions on Cisco video systems. This tool simplifies the process of deploying, managing, and removing macros across single or multiple Cisco endpoints.
 
-## Prerequisites
-- The latest version of PowerShell 7.5.0 installed on your machine.
-- PowerShell 5.1 is not supported as the script uses the Invoke-RestMethod cmdlet.
-- Windows only. MacOS not supported at this time.
-- Cisco systems with administrative access.
-- Direct network connectivity to the Cisco systems over port 443
-- CSV file with the following headers: system name, ip address, username, password.
-- A CSV template is provided in the repository.
-- Macro files in .js format or Pexip OTJ macros in a ZIP directory.
-- By default, the scripts will bypass certificate validaiton to remove any issues that may arise with self-signed certs. If you require certificate vlaidation the script can be modified by removing the -SkipCertificateCheck from the Invoke-RestMethod API calls.
+## 🚀 Features
 
-## Installation
-- Clone the repository:
-- git clone https://github.com/Josh-Estrada/Cisco-Macro-Tool-For-PowerShell.git
-- The repo consists of mutliple ps1 scripts that perform the various fucntions, but you only need to run the MainMenu.ps1
-- Change directory to where you downloaded the repo. cd Cisco-Macro-Tool-For-PowerShell
+### Primary Functions
+- **Upload Pexip OTJ Macros**: Deploy Pexip One-Touch-Join macros from ZIP packages
+- **Upload JS Macros**: Deploy custom JavaScript macros to systems
+- **Remove Macros**: Bulk remove specific macros from systems
+- **Remove UI Extensions**: Clean up UI extensions from systems
 
-## Usage
-Run the MainMenu.ps1 script to launch the tool.:
+### Secondary Functions
+- **System Checks**: 
+  - Verify macro status on a single system
+  - Audit macros across multiple systems
+- **Logging**: Detailed operation logs for troubleshooting
 
-pwsh ./MainMenu.ps1
-You will be presented with a menu to choose from:
+## 📋 Prerequisites
 
-Choose an option:
-1. Upload Pexip OTJ macros
-2. Upload .js macros
-3. Remove macros
-4. Check macros on specific system
-5. Check macros on all systems
-6. Remove UI extensions
-7. Exit
-Enter your choice (1, 2, 3, 4, 5, 6):
+### System Requirements
+- PowerShell 7.5.0 or later (PowerShell 5.1 not supported)
+- Windows operating system (MacOS not supported)
+- Network access to Cisco endpoints (port 443)
 
-## Detailed Steps
-## 1. Upload Pexip OTJ macros
-Enter the path to your CSV file and the directory containing the Pexip OTJ ZIP files. Review the number of matching and non-matching systems, and confirm to proceed with the upload.
+### Network Requirements
+- Direct network connectivity to Cisco systems
+- Administrative access to target Cisco endpoints
 
-## How It Works:
-- Provide the full path of the completed CSV.
-- Ensure the CSV includes the System Name, IP Address, Username, and Password. Spaces in system names are allowed.
-- Provide the directory where OTJ ZIP files exist. No other files or subdirectories should be in the main directory.
-- The OTJ ZIP files should follow the naming convention systemname-otj-macro-latest.zip. The system name in the CSV must match the system name in the ZIP file.
-- Confirm the upload.
-- The tool iterates through the CSV and, for any matching ZIP files, extracts to a temporary folder and uploads the corresponding macros to the corresponding 
-  systems.
-- Log File: UploadPexipOTJMacros.log
+### Files Needed
+- CSV file with system details (template provided)
+- Macro files (.js format or Pexip OTJ ZIP packages)
 
+## 🔒 Security Notes
 
-## 2. Upload .js macros
-Enter the path to your CSV file and the directory containing the .js files. Review the number of .js files found and the number of systems in the CSV file, and confirm to proceed with the upload.
+The tool uses `-SkipCertificateCheck` when connecting to systems to handle self-signed certificates. If certificate validation is required:
+1. Remove the `-SkipCertificateCheck` parameter from `Invoke-RestMethod` calls
+2. Ensure proper certificates are installed on endpoints
 
-## How It Works:
-- Provide the full path of the completed CSV.
-- Provide the directory where .js files exist. Ensure no non-.js files or subdirectories are present.
-- Confirm the upload.
-- The tool iterates through the CSV and uploads all macros to all systems.
-- Log File: UploadJsMacros.log
+## 🛠️ Installation
 
+1. Clone the repository:
+   ```powershell
+   git clone https://github.com/Josh-E-S/Cisco-Macro-Tool-For-PowerShell.git
+   ```
+2. Navigate to the tool directory:
+   ```powershell
+   cd Cisco-Macro-Tool-For-PowerShell
+   ```
 
-## 3. Remove macros
-Enter the path to your CSV file and specify the macros to remove (comma-separated). Review the number of systems found in the CSV file, and confirm to proceed with the removal.
+## 📝 Usage
 
-## How It Works:
+1. Prepare your CSV file using the provided template (`macro_template_pwsh.csv`)
+2. Run the main script:
+   ```powershell
+   .\MainMenu.ps1
+   ```
+3. Choose from the available options:
+   - 1: Upload Pexip OTJ macros
+   - 2: Upload .js macros
+   - 3: Remove macros
+   - 4: Check macros on a specific system
+   - 5: Check macros on all systems
+   - 6: Remove UI extensions
+   - 7: Exit
 
-- Provide the full path of the completed CSV.
-- Specify the macro names to be removed. The macro name must match exactly as it appears on the systems. Multiple macros can be provided by using commas.
-- Confirm the removal.
-- The tool iterates through the CSV and removes all specified macros from all systems.
-- Log File: RemoveMacros.log
+## 📊 Logging
 
+- Each operation generates a detailed log file
+- Logs are saved in the same directory as the scripts
+- Log files follow the naming pattern: `Operation.log` (e.g., `UploadJsMacros.log`)
 
-## 4. Check macros on a specific system
-Enter the IP address or hostname of the specific system to check. The tool will display the list of installed macros on that system.
+## 🤝 Contributing
 
-## How It Works:
+Contributions are welcome! Please feel free to submit pull requests.
 
-- Enter the system's IP address or hostname.
-- The tool retrieves and displays the list of macros installed on the specified system.
-- Log File: CheckMacrosOnSystem.log
+## 📄 License
 
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 5. Check macros on all systems
-Enter the path to your CSV file. The tool will display the list of installed macros on all systems in the CSV.
+## ⚡ Performance Tips
 
-## How It Works:
+- Group operations by network location for faster execution
+- Use CSV files to manage large numbers of systems efficiently
+- Consider network latency when working with remote systems
 
-- Provide the full path of the completed CSV.
-- The tool iterates through the CSV and retrieves the list of macros installed on each system.
-- Log File: CheckMacrosOnAllSystems.log
-- Logging
-- Each function generates a log file in the same directory as the script. The log files contain detailed information about the operations performed, including 
-  successful and failed attempts.
+## 🔍 Troubleshooting
 
-## 6. Remove UI Extensions
-Enter the path to your CSV file and specify the macros to remove (comma-separated). Review the number of systems found in the CSV file, and confirm to proceed with the removal.
+Common issues and solutions:
+1. Connection failures
+   - Verify network connectivity
+   - Check system credentials
+   - Confirm system is reachable on port 443
 
-## How It Works:
+2. Macro upload failures
+   - Verify macro syntax
+   - Check system has available macro slots
+   - Ensure proper file formatting
 
-- Provide the full path of the completed CSV.
-- Specify the UI Extension Panel IDs to be removed. The Panel ID name must match exactly as it appears on the 
-  systems. Multiple Panel IDs can be provided by using commas.
-- Confirm the removal.
-- The tool iterates through the CSV and removes all specified UI Extension Panels from all systems.
-- Log File: RemoveUIExtensions.log
-
-## 7. Exit
-Exits the Main script and macro tool.
-
-## Logging
-- UploadPexipOTJMacros.log: Logs for uploading Pexip OTJ macros.
-- UploadJsMacros.log: Logs for uploading .js macros.
-- RemoveMacros.log: Logs for removing macros.
-- CheckMacrosOnSystem.log: Logs for checking macros on a specific system.
-- CheckMacrosOnAllSystems.log: Logs for checking macros on all systems.
-- RemoveUIExtensions.log: Logs for removing UI Extension Panels.
-
-## Contributing
-Feel free to submit issues and pull requests to improve the tool.
+3. Permission issues
+   - Verify admin credentials
+   - Check system macro security settings
