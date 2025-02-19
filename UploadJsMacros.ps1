@@ -167,6 +167,40 @@ function Enable-Macro {
     }
 }
 
+# Function to enable macros mode
+function Enable-MacrosMode {
+    param (
+        [string]$endpointIp,
+        [string]$username,
+        [string]$password,
+        [string]$logFile,
+        [string]$systemName
+    )
+
+    $message = "Attempting to enable macros mode on $endpointIp ($systemName)..."
+    Display-Message $message
+    Log-Message -message $message -logFile $logFile
+
+    $headers = @{
+        "Content-Type"  = "application/xml"
+        "Authorization" = "Basic " + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("${username}:${password}"))
+    }
+
+    $body = "<Configuration><Macros><Mode>On</Mode></Macros></Configuration>"
+
+    try {
+        $response = Invoke-RestMethod -Uri "https://$endpointIp/putxml" -Method 'POST' -Headers $headers -Body $body -TimeoutSec 10 -SkipCertificateCheck
+        $message = "Macros mode enabled on $endpointIp ($systemName)"
+        Display-Message $message
+        Log-Message -message $message -logFile $logFile
+    } catch {
+        $errorDetails = $_.Exception.Message
+        $message = "Error enabling macros mode on $endpointIp ($systemName). Response: $errorDetails"
+        Display-Message $message
+        Log-Message -message $message -logFile $logFile
+    }
+}
+
 # Function to restart macro runtime
 function Restart-MacroRuntime {
     param (
@@ -218,6 +252,9 @@ foreach ($system in $systems) {
     $username = $system.'username'
     $password = $system.'password'
 
+    # Enable macros mode once per system before any operations
+    Enable-MacrosMode -endpointIp $ipAddress -username $username -password $password -logFile $logFile -systemName $systemName
+
     $systemSummary = [PSCustomObject]@{
         IPAddress = $ipAddress
         SystemName = $systemName
@@ -227,6 +264,7 @@ foreach ($system in $systems) {
     }
 
     foreach ($jsFile in $jsFiles) {
+        # Upload macro
         $success = Upload-MacroFromJs -endpointIp $ipAddress -username $username -password $password -jsFilePath $jsFile.FullName -logFile $logFile -systemName $systemName
         if ($success) {
             $systemSummary.SuccessfulUploads++
