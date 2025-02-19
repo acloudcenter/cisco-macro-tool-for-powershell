@@ -52,6 +52,18 @@ try {
     return
 }
 
+# Ask to Enable/Disable EvaluateTranspiled option
+$option = Read-Host "Do you want to enable transpile evaluation? (yes/no, default: no)"
+$option = $option.ToLower()
+if ([string]::IsNullOrWhiteSpace($option) -or $option -eq "no" -or $option -eq "n") {
+    $evaluateTranspiled = "False"
+} elseif ($option -eq "yes" -or $option -eq "y") {
+    $evaluateTranspiled = "True"
+} else {
+    Display-Message "Invalid input. Defaulting to disabled."
+    $evaluateTranspiled = "False"
+}
+
 # Confirm upload
 if (-not (Get-Confirmation -promptMessage "Do you want to proceed with the upload?")) {
     Display-Message "Upload cancelled."
@@ -243,6 +255,50 @@ function Restart-MacroRuntime {
     }
 }
 
+# Function to set transpile evaluation mode
+function Set-TranspileEvaluation {
+    param (
+        [string]$endpointIp,
+        [string]$username,
+        [string]$password,
+        [string]$logFile,
+        [string]$systemName,
+        [string]$evaluateTranspiled
+    )
+
+    $message = "Attempting to set transpile evaluation mode to $evaluateTranspiled on $endpointIp ($systemName)..."
+    Display-Message $message
+    Log-Message -message $message -logFile $logFile
+
+    $headers = @{
+        "Content-Type"  = "application/xml"
+        "Authorization" = "Basic " + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("${username}:${password}"))
+    }
+
+    $body = "<Configuration><Macros><EvaluateTranspiled>$evaluateTranspiled</EvaluateTranspiled></Macros></Configuration>"
+
+    try {
+        $response = Invoke-RestMethod -Uri "https://$endpointIp/putxml" -Method 'POST' -Headers $headers -Body $body -TimeoutSec 10 -SkipCertificateCheck
+        $message = "Transpile evaluation mode set to $evaluateTranspiled on $endpointIp ($systemName)"
+        Display-Message $message
+        Log-Message -message $message -logFile $logFile
+        return $true
+    } catch {
+        $errorDetails = $_.Exception.Message
+        if ($errorDetails -match "Invalid value|Unknown command|Invalid path") {
+            $message = "System $endpointIp ($systemName) does not support transpile evaluation settings. Continuing with default configuration."
+            Display-Message $message
+            Log-Message -message $message -logFile $logFile
+            return $true
+        } else {
+            $message = "Error setting transpile evaluation mode on $endpointIp ($systemName). Response: $errorDetails"
+            Display-Message $message
+            Log-Message -message $message -logFile $logFile
+            return $false
+        }
+    }
+}
+
 # Perform the upload
 $uploadSummary = @()
 
@@ -254,6 +310,13 @@ foreach ($system in $systems) {
 
     # Enable macros mode once per system before any operations
     Enable-MacrosMode -endpointIp $ipAddress -username $username -password $password -logFile $logFile -systemName $systemName
+
+    # Set transpile evaluation mode
+    $transpileSuccess = Set-TranspileEvaluation -endpointIp $ipAddress -username $username -password $password -logFile $logFile -systemName $systemName -evaluateTranspiled $evaluateTranspiled
+    if (-not $transpileSuccess) {
+        Display-Message "Skipping uploads for $ipAddress ($systemName) due to configuration error"
+        continue
+    }
 
     $systemSummary = [PSCustomObject]@{
         IPAddress = $ipAddress
