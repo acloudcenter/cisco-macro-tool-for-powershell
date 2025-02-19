@@ -30,7 +30,9 @@ A PowerShell-based utility for managing macros and UI extensions on Cisco video 
 - Administrative access to target Cisco endpoints
 
 ### Files Needed
-- CSV file with system details (template provided)
+- CSV file with system details (template provided in `macro_template_pwsh.csv`)
+  - Required columns: system name, ip address, username, password
+  - One row per system to be managed
 - Macro files (.js format or Pexip OTJ ZIP packages)
 
 ## 🔒 Security Notes
@@ -79,5 +81,3 @@ Contributions are welcome! Please feel free to submit pull requests.
 ## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
-
-
