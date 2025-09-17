@@ -15,13 +15,15 @@ A PowerShell-based utility for managing macros and UI extensions on Cisco video 
   - Optional transpile evaluation configuration
   - Automatic macro mode enabling
   - Supports both modern and legacy Cisco firmware
+- **Upload UI Extensions**: Deploy custom panels/widgets to room devices using exported XML
 - **Remove Macros**: Bulk remove specific macros from systems
 - **Remove UI Extensions**: Clean up UI extensions from systems
 
 ### Secondary Functions
-- **System Checks**: 
+- **System Checks**:
   - Verify macro status on a single system
   - Audit macros across multiple systems
+  - Optional CSV export for audit results
 - **Logging**: Detailed operation logs for troubleshooting
 
 ### Recent Updates
@@ -75,13 +77,14 @@ The tool uses `-SkipCertificateCheck` when connecting to systems to handle self-
    .\MainMenu.ps1
    ```
 3. Choose from the available options:
-   - 1: Upload Pexip OTJ macros
-   - 2: Upload .js macros
-   - 3: Remove macros
-   - 4: Check macros on a specific system
-   - 5: Check macros on all systems
-   - 6: Remove UI extensions
-   - 7: Exit
+  - 1: Upload Pexip OTJ macros
+  - 2: Upload .js macros
+  - 3: Remove macros
+  - 4: Check macros on a specific system (optional CSV export)
+  - 5: Check macros on all systems (optional CSV export)
+  - 6: Remove UI extensions
+  - 7: Upload UI extensions
+  - 8: Exit
 
 ## 📊 Logging
 

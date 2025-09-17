@@ -1,30 +1,11 @@
 # Source helper functions
 . .\HelperFunctions.ps1
 
-# Function to log messages to a file
-function Log-Message {
-    param (
-        [string]$message,
-        [string]$logFile
-    )
-    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    $logEntry = "$timestamp - $message"
-    Add-Content -Path $logFile -Value $logEntry
-}
-
-# Function to display messages in the console
-function Display-Message {
-    param (
-        [string]$message
-    )
-    Write-Host $message
-}
-
 # Initialize log file
 $logFile = "UploadPexipOTJMacros.log"
 
 Display-Message "Option 1 selected: Upload Pexip OTJ macros"
-Log-Message -message "Option 1 selected: Upload Pexip OTJ macros" -logFile $logFile
+Log-Message -Message "Option 1 selected: Upload Pexip OTJ macros" -LogFile $logFile
 
 # Prompt user for CSV file path
 $csvFilePath = Get-FilePath -promptMessage "Please enter the full path to the CSV file:"
@@ -33,10 +14,23 @@ $csvFilePath = Get-FilePath -promptMessage "Please enter the full path to the CS
 $zipDirectory = Get-FilePath -promptMessage "Please enter the full path to the directory containing the Pexip OTJ ZIP files:"
 
 # List ZIP files
-$zipFiles = Get-ChildItem -Path $zipDirectory -Filter *-otj-macro-latest*.zip
+$zipFiles = Get-ChildItem -Path $zipDirectory -Filter *-otj-macro-latest*.zip -ErrorAction SilentlyContinue
+
+if ($zipFiles.Count -eq 0) {
+    Display-Message "No Pexip OTJ ZIP files were found in the specified directory."
+    Log-Message -Message "No Pexip OTJ ZIP files were found in the directory $zipDirectory." -LogFile $logFile
+    return
+}
 
 # Import CSV
-$systems = Import-Csv -Path $csvFilePath
+try {
+    $systems = Import-SystemCsv -Path $csvFilePath
+} catch {
+    $errorDetails = $_.Exception.Message
+    Display-Message "Error importing CSV file. Response: $errorDetails"
+    Log-Message -Message "Error importing CSV file. Response: $errorDetails" -LogFile $logFile
+    return
+}
 
 # Check for matching systems
 $matchingSystems = @()
@@ -46,7 +40,13 @@ foreach ($system in $systems) {
     $systemName = $system.'system name'.Replace(" ", "")
     $matchingZipFiles = $zipFiles | Where-Object { $_.Name -like "*$($systemName.ToLower())*-otj-macro-latest*.zip" }
     if ($matchingZipFiles.Count -gt 0) {
-        $matchingSystems += [PSCustomObject]@{ SystemName = $system.'system name'; IPAddress = $system.'ip address'; Username = $system.'username'; Password = $system.'password'; ZipFile = $matchingZipFiles }
+        $matchingSystems += [PSCustomObject]@{
+            SystemName = $system.'system name'
+            IPAddress  = $system.'ip address'
+            Username   = $system.'username'
+            Password   = $system.'password'
+            ZipFile    = $matchingZipFiles
+        }
     } else {
         $nonMatchingSystems++
     }
@@ -54,174 +54,56 @@ foreach ($system in $systems) {
 
 Display-Message "Found $($matchingSystems.Count) systems with matching Pexip OTJ ZIP files."
 Display-Message "Found $nonMatchingSystems systems with no matching Pexip OTJ ZIP files."
-Log-Message -message "Found $($matchingSystems.Count) systems with matching Pexip OTJ ZIP files." -logFile $logFile
-Log-Message -message "Found $nonMatchingSystems systems with no matching Pexip OTJ ZIP files." -logFile $logFile
+Log-Message -Message "Found $($matchingSystems.Count) systems with matching Pexip OTJ ZIP files." -LogFile $logFile
+Log-Message -Message "Found $nonMatchingSystems systems with no matching Pexip OTJ ZIP files." -LogFile $logFile
 
 # Confirm upload
 if (-not (Get-Confirmation -promptMessage "Do you want to proceed with the upload?")) {
     Display-Message "Upload cancelled."
-    Log-Message -message "Upload cancelled." -logFile $logFile
+    Log-Message -Message "Upload cancelled." -LogFile $logFile
     return
 }
 
 # Function to upload macros from a ZIP file
-function Upload-MacroFromZip {
+function Invoke-PexipMacroUpload {
     param (
-        [string]$endpointIp,
-        [string]$username,
-        [string]$password,
-        [string]$zipFilePath,
-        [string]$logFile,
-        [string]$systemName
+        [string]$EndpointIp,
+        [string]$Username,
+        [string]$Password,
+        [string]$ZipFilePath,
+        [string]$LogFile,
+        [string]$SystemName
     )
 
-    $message = "Attempting to upload macros from $zipFilePath to $endpointIp ($systemName)..."
+    $message = "Attempting to upload macros from $ZipFilePath to $EndpointIp ($SystemName)..."
     Display-Message $message
-    Log-Message -message $message -logFile $logFile
+    Log-Message -Message $message -LogFile $LogFile
 
     $tempDir = Join-Path -Path $env:TEMP -ChildPath ([System.IO.Path]::GetFileNameWithoutExtension([System.IO.Path]::GetRandomFileName()))
     New-Item -ItemType Directory -Path $tempDir | Out-Null
 
     try {
-        Expand-Archive -Path $zipFilePath -DestinationPath $tempDir -Force
-        $jsFiles = Get-ChildItem -Path $tempDir -Filter *.js
+        Expand-Archive -Path $ZipFilePath -DestinationPath $tempDir -Force
+        $jsFiles = Get-ChildItem -Path $tempDir -Filter *.js -ErrorAction Stop
 
         foreach ($jsFile in $jsFiles) {
             $macroName = [System.IO.Path]::GetFileNameWithoutExtension($jsFile.Name)
             $jsCode = Get-Content -Path $jsFile.FullName -Raw
 
-            $headers = @{
-                "Content-Type"  = "application/xml"
-                "Authorization" = "Basic " + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("${username}:${password}"))
-            }
+            $saveSuccess = Save-SystemMacro -EndpointIp $EndpointIp -Username $Username -Password $Password -MacroName $macroName -MacroBody $jsCode -LogFile $LogFile -SystemName $SystemName -NameElement 'name' -IncludeTranspileElement -IncludeCommandAttribute
 
-            $encodedJsCode = [System.Security.SecurityElement]::Escape($jsCode)
-
-            $body = @"
-<Command>
-    <Macros>
-        <Macro>
-            <Save command="True">
-                <name>$macroName</name>
-                <body>$encodedJsCode</body>
-                <overWrite>True</overWrite>
-                <Transpile>False</Transpile>
-            </Save>
-        </Macro>
-    </Macros>
-</Command>
-"@
-
-            try {
-                $response = Invoke-RestMethod -Uri "https://$endpointIp/putxml" -Method 'POST' -Headers $headers -Body $body -TimeoutSec 10 -SkipCertificateCheck
-                $message = "Macro $macroName uploaded successfully to $endpointIp ($systemName) from $zipFilePath."
-                Display-Message $message
-                Log-Message -message $message -logFile $logFile
-                
-                # Enable the uploaded macro
-                Enable-Macro -endpointIp $endpointIp -username $username -password $password -macroName $macroName -logFile $logFile -systemName $systemName
-                
-            } catch {
-                $errorDetails = $_.Exception.Message
-                $message = "Error uploading macro $macroName to: $endpointIp ($systemName) from $zipFilePath. Response: $errorDetails"
-                Display-Message $message
-                Log-Message -message $message -logFile $logFile
+            if ($saveSuccess) {
+                Enable-Macro -EndpointIp $EndpointIp -Username $Username -Password $Password -MacroName $macroName -LogFile $LogFile -SystemName $SystemName | Out-Null
             }
         }
 
     } catch {
-        $message = "Error unzipping file $zipFilePath"
+        $errorDetails = $_.Exception.Message
+        $message = "Error processing file $ZipFilePath. Response: $errorDetails"
         Display-Message $message
-        Log-Message -message $message -logFile $logFile
+        Log-Message -Message $message -LogFile $LogFile
     } finally {
         Remove-Item -Recurse -Force -Path $tempDir
-    }
-}
-
-# Function to enable a macro on a system
-function Enable-Macro {
-    param (
-        [string]$endpointIp,
-        [string]$username,
-        [string]$password,
-        [string]$macroName,
-        [string]$logFile,
-        [string]$systemName
-    )
-
-    $message = "Attempting to enable macro $macroName on $endpointIp ($systemName)..."
-    Display-Message $message
-    Log-Message -message $message -logFile $logFile
-
-    $headers = @{
-        "Content-Type"  = "application/xml"
-        "Authorization" = "Basic " + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("${username}:${password}"))
-    }
-
-    $body = @"
-<Command>
-    <Macros>
-        <Macro>
-            <Activate>
-                <name>$macroName</name>
-            </Activate>
-        </Macro>
-    </Macros>
-</Command>
-"@
-
-    try {
-        $response = Invoke-RestMethod -Uri "https://$endpointIp/putxml" -Method 'POST' -Headers $headers -Body $body -TimeoutSec 10 -SkipCertificateCheck
-        $message = "Macro $macroName enabled successfully on $endpointIp ($systemName)."
-        Display-Message $message
-        Log-Message -message $message -logFile $logFile
-    } catch {
-        $errorDetails = $_.Exception.Message
-        $message = "Error enabling macro $macroName on $endpointIp ($systemName). Response: $errorDetails"
-        Display-Message $message
-        Log-Message -message $message -logFile $logFile
-    }
-}
-
-# Function to restart macro runtime
-function Restart-MacroRuntime {
-    param (
-        [string]$endpointIp,
-        [string]$username,
-        [string]$password,
-        [string]$logFile,
-        [string]$systemName
-    )
-
-    $message = "Attempting to restart macro runtime on $endpointIp ($systemName)..."
-    Display-Message $message
-    Log-Message -message $message -logFile $logFile
-
-    $headers = @{
-        "Content-Type"  = "application/xml"
-        "Authorization" = "Basic " + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("${username}:${password}"))
-    }
-
-    $body = @"
-<Command>
-    <Macros>
-        <Runtime>
-            <Restart command="True"/>
-        </Runtime>
-    </Macros>
-</Command>
-"@
-
-    try {
-        $response = Invoke-RestMethod -Uri "https://$endpointIp/putxml" -Method 'POST' -Headers $headers -Body $body -TimeoutSec 10 -SkipCertificateCheck
-        $message = "Macro runtime restarted successfully on $endpointIp ($systemName)."
-        Display-Message $message
-        Log-Message -message $message -logFile $logFile
-    } catch {
-        $errorDetails = $_.Exception.Message
-        $message = "Error restarting macro runtime on $endpointIp ($systemName). Response: $errorDetails"
-        Display-Message $message
-        Log-Message -message $message -logFile $logFile
     }
 }
 
@@ -229,13 +111,16 @@ function Restart-MacroRuntime {
 $uploadedSystems = 0
 
 foreach ($system in $matchingSystems) {
+    Enable-MacrosMode -EndpointIp $system.IPAddress -Username $system.Username -Password $system.Password -LogFile $logFile -SystemName $system.SystemName | Out-Null
+
     foreach ($zipFile in $system.ZipFile) {
-        Upload-MacroFromZip -endpointIp $system.IPAddress -username $system.Username -password $system.Password -zipFilePath $zipFile.FullName -logFile $logFile -systemName $system.SystemName
-        Restart-MacroRuntime -endpointIp $system.IPAddress -username $system.Username -password $system.Password -logFile $logFile -systemName $system.SystemName
+        Invoke-PexipMacroUpload -EndpointIp $system.IPAddress -Username $system.Username -Password $system.Password -ZipFilePath $zipFile.FullName -LogFile $logFile -SystemName $system.SystemName
         $uploadedSystems++
     }
+
+    Restart-MacroRuntime -EndpointIp $system.IPAddress -Username $system.Username -Password $system.Password -LogFile $logFile -SystemName $system.SystemName | Out-Null
 }
 
-$message = "Upload completed. Successfully uploaded macros to $uploadedSystems systems."
+$message = "Upload completed. Successfully processed $uploadedSystems ZIP packages."
 Display-Message $message
-Log-Message -message $message -logFile $logFile
+Log-Message -Message $message -LogFile $logFile
