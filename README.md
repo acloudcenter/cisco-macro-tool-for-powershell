@@ -56,7 +56,7 @@ The tool uses `-SkipCertificateCheck` when connecting to systems to handle self-
 1. Remove the `-SkipCertificateCheck` parameter from `Invoke-RestMethod` calls
 2. Ensure proper certificates are installed on endpoints
 
-## 🛠️ Installation
+## Installation
 
 1. Clone the repository:
    ```powershell
