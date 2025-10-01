@@ -1,13 +1,13 @@
 # Cisco Macro Tool For PowerShell
 
-> ⚠️ **Note**: This is a community tool and is not officially supported by Pexip or Cisco.
+> **Note**: This is a community tool and is not officially supported by Pexip or Cisco.
 
-> ⚠️ **Note**: Cisco is making changes to their Macro engine. This means that transpilation will be deprecated. Depending on your device's firmware version, you may or may not need to change the transpile settings when uploading macros. Check your device's firmware documentation for JavaScript runtime support.
+> **Note**: Cisco is making changes to their Macro engine. This means that transpilation will be deprecated. Depending on your device's firmware version, you may or may not need to change the transpile settings when uploading macros. Check your device's firmware documentation for JavaScript runtime support.
 
 
 A PowerShell-based utility for managing macros and UI extensions on Cisco video systems. This tool simplifies the process of deploying, managing, and removing macros across single or multiple Cisco endpoints.
 
-## 🚀 Features
+## Features
 
 ### Primary Functions
 - **Upload Pexip OTJ Macros**: Deploy Pexip One-Touch-Join macros from ZIP packages
@@ -50,7 +50,7 @@ A PowerShell-based utility for managing macros and UI extensions on Cisco video 
   - One row per system to be managed
 - Macro files (.js format or Pexip OTJ ZIP packages)
 
-## 🔒 Security Notes
+## Security Notes
 
 The tool uses `-SkipCertificateCheck` when connecting to systems to handle self-signed certificates. If certificate validation is required:
 1. Remove the `-SkipCertificateCheck` parameter from `Invoke-RestMethod` calls
@@ -67,7 +67,7 @@ The tool uses `-SkipCertificateCheck` when connecting to systems to handle self-
    cd Cisco-Macro-Tool-For-PowerShell
    ```
 
-## 📝 Usage
+## Usage
 
 1. Prepare your CSV file using the provided template (`macro_template_pwsh.csv`)
 2. Run the main script:
@@ -83,16 +83,16 @@ The tool uses `-SkipCertificateCheck` when connecting to systems to handle self-
    - 6: Remove UI extensions
    - 7: Exit
 
-## 📊 Logging
+## Logging
 
 - Each operation generates a detailed log file
 - Logs are saved in the same directory as the scripts
 - Log files follow the naming pattern: `Operation.log` (e.g., `UploadJsMacros.log`)
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please feel free to submit pull requests.
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
