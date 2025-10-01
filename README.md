@@ -33,7 +33,7 @@ A PowerShell-based utility for managing macros and UI extensions on Cisco video 
 - Improved error handling and logging for macro mode operations
 - Optimized upload process by enabling macro mode once per system
 
-## 📋 Prerequisites
+## Prerequisites
 
 ### System Requirements
 - PowerShell 7.5.0 or later (PowerShell 5.1 not supported)
